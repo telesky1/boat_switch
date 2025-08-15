@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>船型开关筛选器</title>
+  <link rel="icon" href="LOGO.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-toggle-on"></i> 船型开关筛选器</h1>
+      <p>用于快速查询是否有满足需求的船型开关 | Telesky旗舰店</p>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="filters">
+        <h2 class="section-title"><i class="fas fa-filter"></i> 筛选条件</h2>
+
+        <div class="filter-group">
+          <h3><i class="fas fa-list"></i> 产品系列</h3>
+          <div class="filter-options" id="series-options"></div>
+        </div>
+
+        <div class="filter-group">
+          <h3><i class="fas fa-microchip"></i> 引脚数量</h3>
+          <div class="filter-options" id="pins-options"></div>
+        </div>
+
+        <div class="filter-group">
+          <h3><i class="fas fa-sliders-h"></i> 档位数量</h3>
+          <div class="filter-options" id="positions-options"></div>
+        </div>
+
+        <div class="filter-group">
+          <h3><i class="fas fa-lightbulb"></i> 指示灯</h3>
+          <div class="filter-options" id="light-options"></div>
+        </div>
+
+        <!-- 尺寸筛选输入框 -->
+        <div class="filter-group">
+          <h3><i class="fas fa-ruler-combined"></i> 尺寸筛选 (长度/直径)</h3>
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="size-input" placeholder="输入尺寸(mm)，如：24" />
+          </div>
+          <div style="margin-top: 8px; font-size: 0.85rem; color: #666;">
+            提示：输入长度或直径尺寸(mm)，系统将智能匹配最接近的规格
+          </div>
+        </div>
+
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="search-input" placeholder="输入关键词（关键词查找）..." />
+        </div>
+
+        <button class="reset-btn" id="reset-filters">
+          <i class="fas fa-sync-alt"></i> 重置所有筛选条件
+        </button>
+      </div>
+
+      <div class="results">
+        <div class="stats">
+          <div class="result-count">找到 <span id="result-count">0</span> 个产品</div>
+          <div class="sorting">
+            <select id="sort-by">
+              <option value="default">默认排序</option>
+              <option value="pins">引脚数从少到多</option>
+              <option value="pinsDesc">引脚数从多到少</option>
+              <option value="positions">档位数从少到多</option>
+              <option value="positionsDesc">档位数从多到少</option>
+              <option value="sizeAsc">尺寸从小到大</option>
+              <option value="sizeDesc">尺寸从大到小</option>
+            </select>
+          </div>
+        </div>
+        <div class="products-grid" id="products-container"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>© 2025 船型开关筛选器 | Telesky 旗舰店 https://telesky.tmall.com</p>
+    </div>
+  </div>
+
+  <!-- 回到顶部按钮 -->
+  <button id="back-to-top" aria-label="回到顶部" title="回到顶部">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <!-- 复制成功提示 -->
+  <div class="copy-notification" id="copy-notification">
+    <i class="fas fa-check-circle"></i>
+    <span>链接已复制到剪贴板！</span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
