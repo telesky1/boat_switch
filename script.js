@@ -8,27 +8,7 @@ window.addEventListener('scroll', updateBackTop);
 backTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 updateBackTop();
 
-// ===== 1) 内置示例 =====
-const sampleProducts = [
-  { spec: "KCD1 2脚2档 红色 铜脚 （2个）", series: "KCD1", pins: "2", positions: "2", skuLink: "https://detail.tmall.com/item.htm?id=41210111230&skuId=3771562397627", light: "无灯", size: "20*15mm" },
-  { spec: "KCD1 3脚2档 红灯 铜脚（2个）", series: "KCD1", pins: "3", positions: "2", skuLink: "https://detail.tmall.com/item.htm?id=41210111230&skuId=3942233594085", light: "带灯", size: "25*20mm" },
-  { spec: "KCD3 两档3脚 黑色红灯（1个）", series: "KCD3", pins: "3", positions: "2", skuLink: "https://detail.tmall.com/item.htm?id=41210111230&skuId=4394192173810", light: "带灯", size: "22*18mm" },
-  { spec: "KCD4 4脚2档绿灯 1个", series: "KCD4", pins: "4", positions: "2", skuLink: "https://detail.tmall.com/item.htm?id=41210111230&skuId=4919743109654", light: "带灯", size: "30*25mm" },
-  { spec: "KCD11 2脚2档 红色 KCD11 10x15mm（5个）", series: "KCD11", pins: "2", positions: "2", skuLink: "https://detail.tmall.com/item.htm?id=41210111230&skuId=4919743109681", light: "无灯", size: "10x15mm" },
-  { spec: "圆形开关 开孔11.5MM 有档开关带线（自锁）红色（1个）", series: "圆形", pins: "2", positions: "2", skuLink: "https://detail.tmall.com/item.htm?id=41210111230&skuId=4919743109587", light: "无灯", size: "15mm" },
-  { spec: "全圆实心红色不带灯2档3脚 铜脚 （2个）", series: "全圆", pins: "3", positions: "2", skuLink: "https://detail.tmall.com/item.htm?id=41210111230&skuId=4919743109698", light: "无灯", size: "20mm" },
-  { spec: "KCD1 大号船型开关 30*25mm 3脚2档", series: "KCD1", pins: "3", positions: "2", skuLink: "https://example.com/sku1", light: "无灯", size: "30*25mm" },
-  { spec: "KCD3 中号船型开关 25*20mm 3脚2档", series: "KCD3", pins: "3", positions: "2", skuLink: "https://example.com/sku2", light: "带灯", size: "25*20mm" },
-  { spec: "圆形船型开关 直径15mm 2脚2档", series: "圆形", pins: "2", positions: "2", skuLink: "https://example.com/sku3", light: "带灯", size: "15mm" },
-  { spec: "全圆船型开关 直径20mm 3脚2档", series: "全圆", pins: "3", positions: "2", skuLink: "https://example.com/sku4", light: "无灯", size: "20mm" },
-  { spec: "KCD4 超大船型开关 35*30mm 4脚2档", series: "KCD4", pins: "4", positions: "2", skuLink: "https://example.com/sku5", light: "带灯", size: "35*30mm" },
-  { spec: "KCD11 迷你船型开关 12*10mm 2脚2档", series: "KCD11", pins: "2", positions: "2", skuLink: "https://example.com/sku6", light: "无灯", size: "12*10mm" },
-  { spec: "圆形船型开关 直径18mm 2脚2档", series: "圆形", pins: "2", positions: "2", skuLink: "https://example.com/sku7", light: "带灯", size: "18mm" },
-  { spec: "大型船型开关 40*35mm 4脚2档", series: "大型", pins: "4", positions: "2", skuLink: "https://example.com/sku8", light: "带灯", size: "40*35mm" },
-  { spec: "微型船型开关 8*6mm 2脚2档", series: "微型", pins: "2", positions: "2", skuLink: "https://example.com/sku9", light: "无灯", size: "8*6mm" }
-];
-
-// ===== 2) 全局状态 =====
+// ===== 1) 数据来源（仅本地/远程文件；去除内置示例） =====
 const LS_KEY = "rockerSwitchProducts";
 let products = [];
 let filters = { series: "all", pins: "all", positions: "all", light: "all", search: "", size: "" };
@@ -41,15 +21,12 @@ const sortSelect = document.getElementById("sort-by");
 const sizeInput = document.getElementById("size-input");
 const copyNotification = document.getElementById("copy-notification");
 
-// 本地文件自动加载
-const LOCAL_SOURCES = ['./data/products.json', './data/products.csv', './products.json', './products.csv'];
+// 可自动探测的本地数据路径（CSV/JSON）
+const LOCAL_SOURCES = ['./products.csv', './data/products.csv', './products.json', './data/products.json'];
 
-// ===== 3) 工具函数 =====
-function showStatus(msg, type = "info") {
-  console.log(`[${type.toUpperCase()}] ${msg}`);
-}
-
-function hideStatus() { /* 无 UI 时无需处理 */ }
+// ===== 2) 工具函数 =====
+function showStatus(msg, type = "info") { console.log(`[${type.toUpperCase()}] ${msg}`); }
+function hideStatus() { /* 无 UI 提示位时无需处理 */ }
 
 function normalizeRecord(r) {
   const t = v => (v == null ? "" : String(v).trim());
@@ -60,7 +37,10 @@ function normalizeRecord(r) {
     positions: t(r.positions),
     skuLink: t(r.skuLink),
     light: t(r.light),
-    size: t(r.size)  // 提取尺寸数据
+    size: t(r.size),
+    imageId: t(r.imageId),
+    image: t(r.image || r.imageUrl),           // 允许直接提供图片URL
+    fullImage: t(r.fullImage || r.fullImageUrl) // 允许提供大图URL（未提供则回退到 image）
   };
 
   const toIntStr = v => { const n = parseInt(v, 10); return Number.isFinite(n) ? String(n) : ""; };
@@ -75,8 +55,6 @@ function normalizeRecord(r) {
 }
 
 function validateRecord(o) {
-  const req = ["spec", "series", "pins", "positions", "skuLink", "light"];
-  for (const k of req) if (!o[k]) return `缺少字段: ${k}`;
   if (!/^\d+$/.test(o.pins)) return "pins 必须是整数";
   if (!/^\d+$/.test(o.positions)) return "positions 必须是整数";
   if (!/^https?:\/\//i.test(o.skuLink)) return "skuLink 需要 http/https 链接";
@@ -106,9 +84,12 @@ function parseCsv(text) {
 function ingest(list, mode = "replace") {
   const arr = toUnifiedList(list);
   const ok = [], bad = [];
-  arr.forEach((o, i) => { const err = validateRecord(o); if (err) bad.push({ i, err }); else ok.push(o); });
-  if (bad.length) showStatus(`有 ${bad.length} 条记录不合规，已跳过。例如第 ${bad[0].i + 1} 行：${bad[0].err}`, "warn");
-  if (!ok.length) return showStatus(`没有可导入的有效记录。`, "error");
+  arr.forEach((o, i) => {
+    const err = validateRecord(o);
+    if (err) { console.warn(`记录 ${i} 验证失败: ${err}`, o); bad.push({ i, err }); }
+    else { ok.push(o); }
+  });
+  if (!ok.length) { showStatus(`没有可导入的有效记录。`, "error"); return; }
   setProducts(ok, mode);
 }
 
@@ -138,66 +119,28 @@ function buildAllFacets(list) {
   buildOptions(document.getElementById('light-options'), 'light', Array.from(l).sort((a, b) => a.localeCompare(b, 'zh')));
 }
 
-// 新增：解析尺寸函数
+// —— 尺寸解析与匹配 —— //
 function parseSize(sizeStr) {
   if (!sizeStr) return null;
-
-  // 尝试匹配 "数字*数字" 格式（如 "20*15mm"）
   const matchDimensions = sizeStr.match(/(\d+(?:\.\d+)?)\s*[*x×]\s*(\d+(?:\.\d+)?)/i);
-  if (matchDimensions) {
-    return {
-      length: parseFloat(matchDimensions[1]),
-      width: parseFloat(matchDimensions[2]),
-      isCircular: false
-    };
-  }
-
-  // 尝试匹配纯数字格式（如 "20mm"）
+  if (matchDimensions) { return { length: parseFloat(matchDimensions[1]), width: parseFloat(matchDimensions[2]), isCircular: false }; }
   const matchSingle = sizeStr.match(/(\d+(?:\.\d+)?)\s*mm?/i);
-  if (matchSingle) {
-    return {
-      length: parseFloat(matchSingle[1]),
-      width: null,
-      isCircular: true
-    };
-  }
-
-  // 尝试匹配末尾带数字的格式（如 "尺寸：20mm"）
+  if (matchSingle) { return { length: parseFloat(matchSingle[1]), width: null, isCircular: true }; }
   const matchEnd = sizeStr.match(/(\d+(?:\.\d+)?)\s*mm?$/i);
-  if (matchEnd) {
-    return {
-      length: parseFloat(matchEnd[1]),
-      width: null,
-      isCircular: true
-    };
-  }
-
+  if (matchEnd) { return { length: parseFloat(matchEnd[1]), width: null, isCircular: true }; }
   return null;
 }
+function calculateSizeDifference(targetSize, productSize) { if (!targetSize || !productSize) return Infinity; return Math.abs(targetSize - productSize.length); }
 
-// 新增：计算尺寸差异
-function calculateSizeDifference(targetSize, productSize) {
-  if (!targetSize || !productSize) return Infinity;
-
-  // 直接比较长度/直径值
-  return Math.abs(targetSize - productSize.length);
-}
-
-// 复制链接函数
+// —— 复制链接 —— //
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
-    // 显示复制成功通知
     copyNotification.classList.add('show');
-    setTimeout(() => {
-      copyNotification.classList.remove('show');
-    }, 2000);
-  }).catch(err => {
-    console.error('复制失败:', err);
-    alert('复制链接失败，请手动复制');
-  });
+    setTimeout(() => copyNotification.classList.remove('show'), 2000);
+  }).catch(err => { console.error('复制失败:', err); alert('复制链接失败，请手动复制'); });
 }
 
-// 本地文件加载
+// —— 从本地文件加载 —— //
 async function loadFromLocalFiles() {
   hideStatus();
   for (const path of LOCAL_SOURCES) {
@@ -206,19 +149,18 @@ async function loadFromLocalFiles() {
       if (!res.ok) continue;
       const ct = (res.headers.get('content-type') || '').toLowerCase();
       if (ct.includes('json') || path.toLowerCase().endsWith('.json')) {
-        const json = await res.json(); ingest(json, 'replace');
-      } else {
-        const text = await res.text(); const rows = parseCsv(text); ingest(rows, 'replace');
+        const json = await res.json(); ingest(json, 'replace'); showStatus(`已从本地JSON文件加载：${path}`, 'success'); return true;
+      } else if (ct.includes('csv') || path.toLowerCase().endsWith('.csv')) {
+        const text = await res.text(); const rows = parseCsv(text); ingest(rows, 'replace'); showStatus(`已从本地CSV文件加载：${path}`, 'success'); return true;
       }
-      showStatus(`已从本地文件加载：${path}`, 'success');
-      return true;
-    } catch (e) { /* try next */ }
+    } catch (e) { console.error(`加载 ${path} 失败:`, e); }
   }
-  showStatus('未找到本地数据文件，已使用内置示例。', 'warn');
+  showStatus('未找到本地数据文件。', 'warn');
+  buildAllFacets([]); applyFilters();
   return false;
 }
 
-// ===== 4) 事件绑定（委托支持动态按钮） =====
+// ===== 3) 事件绑定（委托支持动态按钮） =====
 function setupEventListeners() {
   document.querySelector('.filters').addEventListener('click', (e) => {
     const btn = e.target.closest('.filter-option');
@@ -230,17 +172,9 @@ function setupEventListeners() {
     applyFilters();
   });
 
-  document.getElementById('search-input').addEventListener('input', function () {
-    filters.search = this.value.toLowerCase(); applyFilters();
-  });
+  document.getElementById('search-input').addEventListener('input', function () { filters.search = this.value.toLowerCase(); applyFilters(); });
 
-  // 尺寸输入事件监听
-  document.getElementById('size-input').addEventListener('input', function () {
-    // 只允许输入数字和小数点
-    this.value = this.value.replace(/[^\d.]/g, '');
-    filters.size = this.value;
-    applyFilters();
-  });
+  document.getElementById('size-input').addEventListener('input', function () { this.value = this.value.replace(/[^\d.]/g, ''); filters.size = this.value; applyFilters(); });
 
   document.getElementById('reset-filters').addEventListener('click', () => {
     filters = { series: 'all', pins: 'all', positions: 'all', light: 'all', search: '', size: '' };
@@ -253,7 +187,7 @@ function setupEventListeners() {
 
   document.getElementById('sort-by').addEventListener('change', applyFilters);
 
-  // 委托处理复制链接按钮点击事件
+  // 复制链接（委托）
   document.getElementById('products-container').addEventListener('click', function (e) {
     if (e.target.closest('.copy-link')) {
       const card = e.target.closest('.product-card');
@@ -261,9 +195,21 @@ function setupEventListeners() {
       copyToClipboard(link);
     }
   });
+
+  // 图片点击放大（委托）
+  document.getElementById('products-container').addEventListener('click', function (e) {
+    const img = e.target.closest('img[data-full]');
+    if (!img) return;
+    openLightbox(img.getAttribute('data-full'));
+  });
+
+  // 关闭大图
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  document.getElementById('lightbox').addEventListener('click', (e) => { if (e.target.id === 'lightbox') closeLightbox(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
 }
 
-// ===== 5) 过滤 / 渲染 =====
+// ===== 4) 过滤 / 渲染 =====
 function colorForSeries(s) {
   const fixed = { KCD1: '#3498db', KCD3: '#2ecc71', KCD4: '#e74c3c', KCD11: '#f39c12', '圆形': '#9b59b6', '全圆': '#1abc9c' };
   if (fixed[s]) return fixed[s];
@@ -279,92 +225,51 @@ function applyFilters() {
   if (filters.light !== 'all') list = list.filter(p => p.light === filters.light);
   if (filters.search) list = list.filter(p => (p.spec || '').toLowerCase().includes(filters.search));
 
-  // 尺寸筛选逻辑
   const targetSize = parseFloat(filters.size);
   let sizeDiffMap = new Map();
   let filteredList = [];
-  let minDiff = Infinity; // 记录最小差值
+  let minDiff = Infinity;
 
   if (!isNaN(targetSize)) {
-    // 计算每个产品尺寸与目标尺寸的差异
     list.forEach(p => {
       const parsedSize = parseSize(p.size || '');
       if (parsedSize) {
         const diff = calculateSizeDifference(targetSize, parsedSize);
         sizeDiffMap.set(p, diff);
-        // 更新最小差值
         if (diff < minDiff) minDiff = diff;
       } else {
         sizeDiffMap.set(p, Infinity);
       }
     });
-
-    // 根据匹配情况筛选产品
-    if (minDiff === 0) {
-      // 有完全匹配的产品：显示所有完全匹配的产品
-      filteredList = list.filter(p => sizeDiffMap.get(p) === 0);
-    } else if (minDiff <= 5) {
-      // 没有完全匹配但有接近产品（差值≤5mm）：显示所有最小差值产品
-      filteredList = list.filter(p => sizeDiffMap.get(p) === minDiff);
-    } else {
-      // 没有符合要求的产品（最小差值>5mm）：显示空列表
-      filteredList = [];
-    }
+    if (minDiff === 0) filteredList = list.filter(p => sizeDiffMap.get(p) === 0);
+    else if (minDiff <= 5) filteredList = list.filter(p => sizeDiffMap.get(p) === minDiff);
+    else filteredList = [];
   } else {
-    // 没有尺寸筛选时使用原列表
     filteredList = [...list];
   }
 
-  // 应用排序规则
   const sortBy = document.getElementById('sort-by').value;
-  if (sortBy === 'pins') {
-    filteredList.sort((a, b) => (+a.pins) - (+b.pins));
-  } else if (sortBy === 'pinsDesc') {
-    filteredList.sort((a, b) => (+b.pins) - (+a.pins));
-  } else if (sortBy === 'positions') {
-    filteredList.sort((a, b) => (+a.positions) - (+b.positions));
-  } else if (sortBy === 'positionsDesc') {
-    filteredList.sort((a, b) => (+b.positions) - (+a.positions));
-  } else if (sortBy === 'sizeAsc') {
-    // 尺寸从小到大排序
-    filteredList.sort((a, b) => {
-      const sizeA = parseSize(a.size || '');
-      const sizeB = parseSize(b.size || '');
-
-      // 如果两个都有尺寸
-      if (sizeA && sizeB) return sizeA.length - sizeB.length;
-
-      // 如果只有A有尺寸，则A排在前面
-      if (sizeA) return -1;
-
-      // 如果只有B有尺寸，则B排在前面
-      if (sizeB) return 1;
-
-      // 两个都没有尺寸，保持原顺序
-      return 0;
-    });
-  } else if (sortBy === 'sizeDesc') {
-    // 尺寸从大到小排序
-    filteredList.sort((a, b) => {
-      const sizeA = parseSize(a.size || '');
-      const sizeB = parseSize(b.size || '');
-
-      if (sizeA && sizeB) return sizeB.length - sizeA.length;
-      if (sizeA) return -1;
-      if (sizeB) return 1;
-      return 0;
-    });
-  }
+  if (sortBy === 'pins') filteredList.sort((a, b) => (+a.pins) - (+b.pins));
+  else if (sortBy === 'pinsDesc') filteredList.sort((a, b) => (+b.pins) - (+a.pins));
+  else if (sortBy === 'positions') filteredList.sort((a, b) => (+a.positions) - (+b.positions));
+  else if (sortBy === 'positionsDesc') filteredList.sort((a, b) => (+b.positions) - (+a.positions));
+  else if (sortBy === 'sizeAsc') filteredList.sort((a, b) => { const A = parseSize(a.size || ''), B = parseSize(b.size || ''); if (A && B) return A.length - B.length; if (A) return -1; if (B) return 1; return 0; });
+  else if (sortBy === 'sizeDesc') filteredList.sort((a, b) => { const A = parseSize(a.size || ''), B = parseSize(b.size || ''); if (A && B) return B.length - A.length; if (A) return -1; if (B) return 1; return 0; });
 
   renderProducts(filteredList, sizeDiffMap, targetSize);
 }
 
-// 渲染产品时添加尺寸匹配提示
+function resolveImage(p) {
+  // 优先使用 image / fullImage 字段；否则使用 imageId 拼接到本地目录
+  const img = p.image || (p.imageId ? `imagef/${p.imageId}.png` : 'LOGO.png');
+  const full = p.fullImage || img; // 未提供单独大图地址时，使用同一地址
+  return { img, full };
+}
+
 function renderProducts(list, sizeDiffMap, targetSize) {
   resultCount.textContent = list.length;
   productsContainer.innerHTML = '';
 
-  // 当有尺寸输入但无匹配产品时显示特定提示
   if (!isNaN(targetSize) && list.length === 0) {
     productsContainer.innerHTML = `
           <div class="no-results">
@@ -376,7 +281,6 @@ function renderProducts(list, sizeDiffMap, targetSize) {
     return;
   }
 
-  // 通用无结果提示
   if (list.length === 0) {
     productsContainer.innerHTML = `
           <div class="no-results">
@@ -393,37 +297,27 @@ function renderProducts(list, sizeDiffMap, targetSize) {
     const bg = colorForSeries(p.series || '');
     const parsedSize = parseSize(p.size || '');
 
-    // 尺寸匹配提示
     let sizeMatchHtml = '';
     if (!isNaN(targetSize)) {
       const diff = sizeDiffMap.get(p);
       if (diff !== undefined && diff !== Infinity) {
-        if (diff === 0) {
-          sizeMatchHtml = `<span class="size-match exact">完全匹配 (${targetSize}mm)</span>`;
-        } else if (diff <= 5) {
-          sizeMatchHtml = `<span class="size-match close">接近匹配 (差${diff}mm)</span>`;
-        }
+        if (diff === 0) sizeMatchHtml = `<span class="size-match exact">完全匹配 (${targetSize}mm)</span>`;
+        else if (diff <= 5) sizeMatchHtml = `<span class="size-match close">接近匹配 (差${diff}mm)</span>`;
       }
     }
 
-    // 显示尺寸值（长度/直径）
-    let sizeValue = '';
-    if (parsedSize) {
-      if (parsedSize.isCircular) {
-        sizeValue = `直径: ${parsedSize.length}mm`;
-      } else {
-        sizeValue = `长: ${parsedSize.length}mm × 宽: ${parsedSize.width}mm`;
-      }
-    } else {
-      sizeValue = '未提供';
-    }
+    let sizeValue = '未提供';
+    if (parsedSize) sizeValue = parsedSize.isCircular ? `直径: ${parsedSize.length}mm` : `长: ${parsedSize.length}mm × 宽: ${parsedSize.width}mm`;
+
+    const { img, full } = resolveImage(p);
 
     card.innerHTML = `
-          <div class="product-image" style="background: linear-gradient(45deg, ${bg}, #2c3e50)">
-            <i class="fas fa-toggle-on"></i>
+          <div class="product-image">
+            <img src="${img}" data-full="${full}" alt="${p.spec}" loading="lazy"
+                 onerror="this.onerror=null; this.src='LOGO.png';" />
           </div>
           <div class="product-info">
-            <div class="product-series">${p.series || '未分组'} 系列 ${sizeMatchHtml}</div>
+            <div class="product-series" style="background:${bg}">${p.series || '未分组'} 系列 ${sizeMatchHtml}</div>
             <h3 class="product-title">${p.spec || ''}</h3>
             <div class="product-specs">
               <div class="spec"><i class="fas fa-microchip"></i> ${p.pins}脚</div>
@@ -444,13 +338,26 @@ function renderProducts(list, sizeDiffMap, targetSize) {
   });
 }
 
-// ===== 6) 初始化 =====
+// —— Lightbox 逻辑 —— //
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  img.src = src;
+  lb.classList.add('show');
+  lb.setAttribute('aria-hidden', 'false');
+}
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  lb.classList.remove('show');
+  lb.setAttribute('aria-hidden', 'true');
+  // 等待过渡结束后再清理src，避免关闭动画时图片瞬时消失
+  setTimeout(() => { img.src = ''; }, 260);
+}
+
+// ===== 5) 初始化 =====
 function init() {
   setupEventListeners();
-  loadFromLocalFiles().then(ok => {
-    if (!ok) setProducts(sampleProducts, 'replace');
-  }).catch(err => {
-    console.error(err); setProducts(sampleProducts, 'replace');
-  });
+  loadFromLocalFiles(); // 不再使用内置示例，纯读取本地/远程数据
 }
 window.addEventListener('DOMContentLoaded', init);
