@@ -8,14 +8,14 @@
   <link rel="icon" href="LOGO.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
   <div class="container">
     <header>
       <h1><i class="fas fa-toggle-on"></i> 船型开关筛选器</h1>
-      <p>用于快速查询是否有满足需求的船型开关 | Telesky旗舰店</p>
+      <p>用于快速查询是否有满足需求的船型开关 | Telesky旗舰店 | 支持产品方图与点击放大</p>
     </header>
 
     <div class="content-wrapper">
@@ -42,7 +42,6 @@
           <div class="filter-options" id="light-options"></div>
         </div>
 
-        <!-- 尺寸筛选输入框 -->
         <div class="filter-group">
           <h3><i class="fas fa-ruler-combined"></i> 尺寸筛选 (长度/直径)</h3>
           <div class="search-box">
@@ -97,6 +96,14 @@
   <div class="copy-notification" id="copy-notification">
     <i class="fas fa-check-circle"></i>
     <span>链接已复制到剪贴板！</span>
+  </div>
+
+  <!-- 图片放大查看（Lightbox） -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-content" role="dialog" aria-label="图片预览">
+      <button class="lightbox-close" id="lightbox-close" aria-label="关闭预览">&times;</button>
+      <img id="lightbox-img" class="lightbox-img" alt="产品大图">
+    </div>
   </div>
 
   <script src="script.js"></script>
